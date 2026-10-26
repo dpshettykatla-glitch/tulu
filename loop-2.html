@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open link for 5 seconds</title>
+<style>
+  html, body { height: 100%; margin: 0; font-family: sans-serif; }
+  body { display: flex; flex-direction: column; gap: 16px; padding: 16px; box-sizing: border-box; }
+  #count { text-align: center; font-size: 32px; font-weight: bold; }
+  #status { text-align: center; font-size: 24px; }
+  button { flex: 1; font-size: 40px; font-weight: bold; border: none; border-radius: 20px; color: #fff; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  #start { background: #1a9c3f; }
+  #stop { background: #d93025; }
+</style>
+</head>
+<body>
+<div id="count">Opened: 0 times</div>
+<div id="status">Ready</div>
+<button id="start">START</button>
+<button id="stop" disabled>STOP</button>
+
+<script>
+(function () {
+  "use strict";
+
+  var URL_TO_OPEN = "https://virtual.smartthings.com/?id=1003143";
+  var OPEN_MS = 5000; // keep the page open for 5 seconds
+
+  var count = 0;
+  var countEl = document.getElementById("count");
+  var statusEl = document.getElementById("status");
+  var startBtn = document.getElementById("start");
+  var stopBtn = document.getElementById("stop");
+  var win = null;
+  var timer = null;
+
+  function finish(message) {
+    clearTimeout(timer);
+    timer = null;
+    try { if (win && !win.closed) win.close(); } catch (e) {}
+    win = null;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    statusEl.textContent = message;
+  }
+
+  startBtn.addEventListener("click", function () {
+    // window.open must be called directly inside the click handler,
+    // otherwise Tor Browser / other browsers block it as a popup.
+    win = window.open(URL_TO_OPEN, "_blank");
+    if (!win) {
+      statusEl.textContent = "Popup blocked. Allow popups for this page and click START again.";
+      return;
+    }
+    count++;
+    countEl.textContent = "Opened: " + count + (count === 1 ? " time" : " times");
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    statusEl.textContent = "Open... closing in 5 seconds";
+    timer = setTimeout(function () { finish("Done. Click START to run again."); }, OPEN_MS);
+  });
+
+  stopBtn.addEventListener("click", function () { finish("Stopped."); });
+})();
+</script>
+</body>
+</html>
