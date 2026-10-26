@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html, body { height: 100%; margin: 0; }
+  body { display: flex; flex-direction: column; gap: 16px; padding: 16px; box-sizing: border-box; }
+  button { flex: 1; font-size: 48px; font-weight: bold; border: none; border-radius: 20px; color: #fff; }
+  #start { background: #1a9c3f; }
+  #stop { background: #d93025; }
+  #ip { text-align: center; font-size: 22px; font-family: sans-serif; color: #555; }
+  #count { text-align: center; font-size: 32px; font-family: sans-serif; }
+</style>
+</head>
+<body>
+<div id="ip">IP: loading...</div>
+<div id="count">0 / 500</div>
+<button id="start">START</button>
+<button id="stop">STOP</button>
+
+<script>
+  const url = "https://virtual.smartthings.com/?id=1003143";
+  const openTime = 3000; // open 3 seconds
+  const waitTime = 500;  // short pause before reopening
+  const maxCount = 500;  // stop after this many opens
+  let count = 0;
+  let running = false;
+  let win = null;
+
+  const countEl = document.getElementById("count");
+  const updateCount = () => countEl.textContent = count + " / " + maxCount;
+
+  const ipEl = document.getElementById("ip");
+  async function showIP() {
+    try {
+      const r = await fetch("https://api.ipify.org?format=json");
+      const d = await r.json();
+      ipEl.textContent = "IP: " + d.ip;
+    } catch (e) {
+      ipEl.textContent = "IP: unavailable";
+    }
+  }
+  showIP();
+
+  function cycle() {
+    if (!running) return;
+    if (count >= maxCount) {
+      running = false;
+      countEl.textContent = "Done: " + count + " / " + maxCount;
+      return;
+    }
+    showIP();
+    win = window.open(url, "_blank", "width=800,height=600");
+    count++;
+    updateCount();
+    setTimeout(() => {
+      if (win && !win.closed) win.close();
+      setTimeout(cycle, waitTime);
+    }, openTime);
+  }
+
+  document.getElementById("start").onclick = () => {
+    if (running) return;
+    count = 0;
+    updateCount();
+    running = true;
+    cycle();
+  };
+
+  document.getElementById("stop").onclick = () => {
+    running = false;
+    if (win && !win.closed) win.close();
+  };
+</script>
+</body>
+</html>
