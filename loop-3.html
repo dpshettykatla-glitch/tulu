@@ -5,8 +5,7 @@
 <style>
   html, body { height: 100%; margin: 0; }
   body { display: flex; flex-direction: column; gap: 16px; padding: 16px; box-sizing: border-box; }
-  button { flex: 1; font-size: 48px; font-weight: bold; border: none; border-radius: 20px; color: #fff; }
-  #start { background: #1a9c3f; }
+  button { flex: 1; font-size: 48px; font-weight: bold; border: none; border-radius: 20px; color: #fff; cursor: pointer; }
   #stop { background: #d93025; }
   #ip { text-align: center; font-size: 22px; font-family: sans-serif; color: #555; }
   #count { text-align: center; font-size: 32px; font-family: sans-serif; }
@@ -15,7 +14,6 @@
 <body>
 <div id="ip">IP: loading...</div>
 <div id="count">0 / 500</div>
-<button id="start">START</button>
 <button id="stop">STOP</button>
 
 <script>
@@ -24,7 +22,7 @@
   const waitTime = 500;  // short pause before reopening
   const maxCount = 500;  // stop after this many opens
   let count = 0;
-  let running = false;
+  let running = true;    // Set to true by default to autorun
   let win = null;
 
   const countEl = document.getElementById("count");
@@ -40,7 +38,6 @@
       ipEl.textContent = "IP: unavailable";
     }
   }
-  showIP();
 
   function cycle() {
     if (!running) return;
@@ -59,18 +56,17 @@
     }, openTime);
   }
 
-  document.getElementById("start").onclick = () => {
-    if (running) return;
-    count = 0;
-    updateCount();
-    running = true;
-    cycle();
-  };
-
+  // Stop button handler
   document.getElementById("stop").onclick = () => {
     running = false;
     if (win && !win.closed) win.close();
   };
+
+  // Run automatically on page load
+  window.addEventListener("DOMContentLoaded", () => {
+    showIP();
+    cycle();
+  });
 </script>
 </body>
 </html>
